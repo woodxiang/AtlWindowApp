@@ -36,6 +36,9 @@
     <ClInclude Include="MainApp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GLRender.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

@@ -1,5 +1,5 @@
 #pragma once
-#include <gl\GL.h>
+#include "GLRender.h"
 
 class CMainWindow :
 	public CWindowImpl<CMainWindow, CWindow, CFrameWinTraits>
@@ -15,42 +15,7 @@ public:
 
 	LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 	{
-		HDC hDC = GetDC();
-
-		PIXELFORMATDESCRIPTOR pfd;
-		ZeroMemory(&pfd, sizeof(pfd));
-
-		pfd.nSize = sizeof(pfd);
-		pfd.nVersion = 1;
-		pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
-		pfd.iPixelType = PFD_TYPE_RGBA;
-		pfd.cColorBits = 32;
-		auto pf = ChoosePixelFormat(hDC, &pfd);
-		if (pf == 0)
-		{
-			MessageBox(_T("Choose PixelFormat Failed."), _T("ERROR"), MB_OK);
-			goto error_exit;
-		}
-
-		if (SetPixelFormat(hDC, pf, &pfd) == FALSE)
-		{
-			MessageBox(_T("Set PixelFormat Failed."), _T("ERROR"), MB_OK);
-			goto error_exit;
-		}
-
-		m_hGlrc = wglCreateContext(hDC);
-		if (m_hGlrc == NULL)
-		{
-			MessageBox(_T("Create GL Context Failed."), _T("ERROR"), MB_OK);
-			goto error_exit;
-		}
-		if (!wglMakeCurrent(hDC, m_hGlrc))
-		{
-			MessageBox(_T("Set Current GL Context Failed."), _T("ERROR"), MB_OK);
-		}
-
-	error_exit:
-		ReleaseDC(hDC);
+		m_Render.Init(m_hWnd);
 		return S_OK;
 	}
 
@@ -59,45 +24,23 @@ public:
 		PAINTSTRUCT ps;
 		BeginPaint(&ps);
 		EndPaint(&ps);
-		Display();
+		m_Render.Display();
 		return S_OK;
 	}
 
 	HRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 	{
-		glViewport(0, 0, LOWORD(lParam), HIWORD(lParam));
+		m_Render.Resize(LOWORD(lParam), HIWORD(lParam));
 		//Invalidate();
 		return S_OK;
 	}
 
 	void OnFinalMessage(HWND hWnd)
 	{
-		wglMakeCurrent(NULL, NULL);
-		if (m_hGlrc != NULL)
-		{
-			wglDeleteContext(m_hGlrc);
-			m_hGlrc = NULL;
-		}
+		m_Render.Free();
 		PostQuitMessage(0);
 	}
 
-	void Display()
-	{
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		glBegin(GL_TRIANGLES);
-
-		glColor3f(1.0f, 1.0f, 1.0f);
-		glVertex2i(0, 1);
-		glColor3f(0.0f, 1.0f, 0.0f);
-		glVertex2i(-1, -1);
-		glColor3f(0.0f, 0.0f, 1.0f);
-		glVertex2i(1, -1);
-
-		glEnd();
-		glFlush();
-	}
-
 private:
-	HGLRC m_hGlrc;
+	CGLRender m_Render;
 };
