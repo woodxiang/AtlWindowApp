@@ -7,57 +7,85 @@ class CGLRender
 public:
 	bool Init(HWND hWnd)
 	{
-		HDC hDC = GetDC(hWnd);
+		if (hWnd == NULL)
+			return false;
+
+		m_hWnd = hWnd;
+		m_hDC = GetDC(hWnd);
+		if (m_hDC == NULL)
+		{
+			return false;
+		}
 
 		PIXELFORMATDESCRIPTOR pfd;
 		ZeroMemory(&pfd, sizeof(pfd));
 
 		pfd.nSize = sizeof(pfd);
 		pfd.nVersion = 1;
-		pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
+		pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
 		pfd.iPixelType = PFD_TYPE_RGBA;
 		pfd.cColorBits = 32;
-		auto pf = ChoosePixelFormat(hDC, &pfd);
+		auto pf = ChoosePixelFormat(m_hDC, &pfd);
 		if (pf == 0)
 		{
-			goto error_exit;
+			return false;
 		}
 
-		if (SetPixelFormat(hDC, pf, &pfd) == FALSE)
+		if (SetPixelFormat(m_hDC, pf, &pfd) == FALSE)
 		{
-			goto error_exit;
+			return false;
 		}
 
-		m_hGlrc = wglCreateContext(hDC);
+		m_hGlrc = wglCreateContext(m_hDC);
 		if (m_hGlrc == NULL)
 		{
-			goto error_exit;
+			return false;
 		}
-		if (!wglMakeCurrent(hDC, m_hGlrc))
+		if (!wglMakeCurrent(m_hDC, m_hGlrc))
 		{
-			goto error_exit;
+			return false;
 		}
-		ReleaseDC(hWnd, hDC);
 		return true;
-
-	error_exit:
-		ReleaseDC(hWnd, hDC);
-		return false;
 	}
 
 	void Resize(int width, int height)
 	{
 		glViewport(0, 0, width, height);
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+
+		GLdouble aspectRatio = 1.0* width / height;
+
+		if (aspectRatio <= 1)
+		{
+			glOrtho(-1.0, 1.0, -1.0 / aspectRatio, 1.0 / aspectRatio, 1.0, -1.0);
+		}
+		else
+		{
+			glOrtho(-1.0 * aspectRatio, 1.0 * aspectRatio, -1.0, 1.0, 1.0, -1.0);
+		}
+
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
 	}
 
 	void Free()
 	{
 		wglMakeCurrent(NULL, NULL);
+
+		if (m_hWnd != NULL && m_hDC != NULL)
+		{
+			ReleaseDC(m_hWnd, m_hDC);
+			m_hDC = NULL;
+		}
+
 		if (m_hGlrc != NULL)
 		{
 			wglDeleteContext(m_hGlrc);
 			m_hGlrc = NULL;
 		}
+
+		m_hWnd = NULL;
 	}
 
 	void virtual Display()
@@ -74,9 +102,12 @@ public:
 		glVertex2i(1, -1);
 
 		glEnd();
-		glFlush();
+		//glFlush();
+		SwapBuffers(m_hDC);
 	}
 
 private:
 	HGLRC m_hGlrc;
+	HDC m_hDC;
+	HWND m_hWnd;
 };

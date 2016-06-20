@@ -11,11 +11,14 @@ public:
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_PAINT, OnPaint)
 		MESSAGE_HANDLER(WM_SIZE, OnSize)
+		MESSAGE_HANDLER(WM_TIMER, OnTimer)
+		MESSAGE_HANDLER(WM_CLOSE, OnClose)
 	END_MSG_MAP()
 
 	LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 	{
 		m_Render.Init(m_hWnd);
+		SetTimer(100, USER_TIMER_MINIMUM, NULL);
 		return S_OK;
 	}
 
@@ -24,20 +27,32 @@ public:
 		PAINTSTRUCT ps;
 		BeginPaint(&ps);
 		EndPaint(&ps);
-		m_Render.Display();
 		return S_OK;
 	}
 
 	HRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 	{
 		m_Render.Resize(LOWORD(lParam), HIWORD(lParam));
-		//Invalidate();
+		m_Render.Display();
+		return S_OK;
+	}
+
+	LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+	{
+		m_Render.Display();
+		return S_OK;
+	}
+
+	LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+	{
+		KillTimer(100);
+		m_Render.Free();
+		DestroyWindow();
 		return S_OK;
 	}
 
 	void OnFinalMessage(HWND hWnd)
 	{
-		m_Render.Free();
 		PostQuitMessage(0);
 	}
 
