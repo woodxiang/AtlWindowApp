@@ -5,82 +5,143 @@
 class CGLRender
 {
 public:
+
+	CGLRender()
+	{
+		QueryPerformanceFrequency(&freqency);
+	}
+
 	bool Init(HWND hWnd)
 	{
-		HDC hDC = GetDC(hWnd);
+		if (hWnd == NULL)
+			return false;
+
+		m_hWnd = hWnd;
+		m_hDC = GetDC(hWnd);
+		if (m_hDC == NULL)
+		{
+			return false;
+		}
 
 		PIXELFORMATDESCRIPTOR pfd;
 		ZeroMemory(&pfd, sizeof(pfd));
 
 		pfd.nSize = sizeof(pfd);
 		pfd.nVersion = 1;
-		pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
+		pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
 		pfd.iPixelType = PFD_TYPE_RGBA;
 		pfd.cColorBits = 32;
-		auto pf = ChoosePixelFormat(hDC, &pfd);
+		auto pf = ChoosePixelFormat(m_hDC, &pfd);
 		if (pf == 0)
 		{
-			goto error_exit;
+			return false;
 		}
 
-		if (SetPixelFormat(hDC, pf, &pfd) == FALSE)
+		if (SetPixelFormat(m_hDC, pf, &pfd) == FALSE)
 		{
-			goto error_exit;
+			return false;
 		}
 
-		m_hGlrc = wglCreateContext(hDC);
+		m_hGlrc = wglCreateContext(m_hDC);
 		if (m_hGlrc == NULL)
 		{
-			goto error_exit;
+			return false;
 		}
-		if (!wglMakeCurrent(hDC, m_hGlrc))
+		if (!wglMakeCurrent(m_hDC, m_hGlrc))
 		{
-			goto error_exit;
+			return false;
 		}
-		ReleaseDC(hWnd, hDC);
 
-		glClearColor(0.93f, 0.93f, 0.93f, 0.0f);
-		glColor3f(0.0f, 0.0f, 0.f);
+		QueryPerformanceCounter(&lastTimeStamp);
 
 		return true;
-
-	error_exit:
-		ReleaseDC(hWnd, hDC);
-		return false;
 	}
 
 	void Resize(int width, int height)
 	{
+		const double range = 3;
+
+		if (height == 0)
+			height = 1;
+
 		glViewport(0, 0, width, height);
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+
+		GLdouble aspectRatio = 1.0* width / height;
+
+		if (aspectRatio <= 1)
+		{
+			glOrtho(-range, range, -range / aspectRatio, range / aspectRatio, range, -range);
+		}
+		else
+		{
+			glOrtho(-range * aspectRatio, range * aspectRatio, -range, range, range, -range);
+		}
+
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		//Display();
 	}
 
 	void Free()
 	{
 		wglMakeCurrent(NULL, NULL);
+
+		if (m_hWnd != NULL && m_hDC != NULL)
+		{
+			ReleaseDC(m_hWnd, m_hDC);
+			m_hDC = NULL;
+		}
+
 		if (m_hGlrc != NULL)
 		{
 			wglDeleteContext(m_hGlrc);
 			m_hGlrc = NULL;
 		}
+
+		m_hWnd = NULL;
 	}
 
 	void virtual Display()
 	{
+		LARGE_INTEGER currentTimeStamp;
+		QueryPerformanceCounter(&currentTimeStamp);
+		int timeescape = (currentTimeStamp.QuadPart - lastTimeStamp.QuadPart) * 1000 / freqency.QuadPart;
+
+		if (timeescape < 0)
+			return;
+
+		float colorShift = (float)(timeescape % 10000) / 10000;
+
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glBegin(GL_TRIANGLES);
+		//glEnable(GL_LINE_SMOOTH);
+		//glEnable(GL_POINT_SMOOTH);
 
-		glColor3f(1.0f, 1.0f, 1.0f);
+		glBegin(GL_TRIANGLES);
+		glColor3f(1.0f - colorShift, 1.0f - colorShift, 1.0f - colorShift);
 		glVertex2i(0, 1);
 		glColor3f(0.0f, 1.0f, 0.0f);
 		glVertex2i(-1, -1);
 		glColor3f(0.0f, 0.0f, 1.0f);
 		glVertex2i(1, -1);
-
 		glEnd();
-		glFlush();
+
+		glPointSize(100);
+
+		glBegin(GL_POINTS);
+		glVertex2d(2.0, 2.0);
+		glEnd();
+
+		SwapBuffers(m_hDC);
 	}
 
 private:
 	HGLRC m_hGlrc;
+	HDC m_hDC;
+	HWND m_hWnd;
+
+	LARGE_INTEGER lastTimeStamp;
+	LARGE_INTEGER freqency;
 };
