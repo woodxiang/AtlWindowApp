@@ -5,6 +5,12 @@
 class CGLRender
 {
 public:
+
+	CGLRender()
+	{
+		QueryPerformanceFrequency(&freqency);
+	}
+
 	bool Init(HWND hWnd)
 	{
 		if (hWnd == NULL)
@@ -45,11 +51,19 @@ public:
 		{
 			return false;
 		}
+
+		QueryPerformanceCounter(&lastTimeStamp);
+
 		return true;
 	}
 
 	void Resize(int width, int height)
 	{
+		const double range = 3;
+
+		if (height == 0)
+			height = 1;
+
 		glViewport(0, 0, width, height);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
@@ -58,15 +72,16 @@ public:
 
 		if (aspectRatio <= 1)
 		{
-			glOrtho(-1.0, 1.0, -1.0 / aspectRatio, 1.0 / aspectRatio, 1.0, -1.0);
+			glOrtho(-range, range, -range / aspectRatio, range / aspectRatio, range, -range);
 		}
 		else
 		{
-			glOrtho(-1.0 * aspectRatio, 1.0 * aspectRatio, -1.0, 1.0, 1.0, -1.0);
+			glOrtho(-range * aspectRatio, range * aspectRatio, -range, range, range, -range);
 		}
 
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
+		//Display();
 	}
 
 	void Free()
@@ -90,19 +105,35 @@ public:
 
 	void virtual Display()
 	{
+		LARGE_INTEGER currentTimeStamp;
+		QueryPerformanceCounter(&currentTimeStamp);
+		int timeescape = (currentTimeStamp.QuadPart - lastTimeStamp.QuadPart) * 1000 / freqency.QuadPart;
+
+		if (timeescape < 0)
+			return;
+
+		float colorShift = (float)(timeescape % 10000) / 10000;
+
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glBegin(GL_TRIANGLES);
+		//glEnable(GL_LINE_SMOOTH);
+		//glEnable(GL_POINT_SMOOTH);
 
-		glColor3f(1.0f, 1.0f, 1.0f);
+		glBegin(GL_TRIANGLES);
+		glColor3f(1.0f - colorShift, 1.0f - colorShift, 1.0f - colorShift);
 		glVertex2i(0, 1);
 		glColor3f(0.0f, 1.0f, 0.0f);
 		glVertex2i(-1, -1);
 		glColor3f(0.0f, 0.0f, 1.0f);
 		glVertex2i(1, -1);
-
 		glEnd();
-		//glFlush();
+
+		glPointSize(100);
+
+		glBegin(GL_POINTS);
+		glVertex2d(2.0, 2.0);
+		glEnd();
+
 		SwapBuffers(m_hDC);
 	}
 
@@ -110,4 +141,7 @@ private:
 	HGLRC m_hGlrc;
 	HDC m_hDC;
 	HWND m_hWnd;
+
+	LARGE_INTEGER lastTimeStamp;
+	LARGE_INTEGER freqency;
 };

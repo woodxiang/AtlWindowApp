@@ -11,14 +11,13 @@ public:
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MESSAGE_HANDLER(WM_PAINT, OnPaint)
 		MESSAGE_HANDLER(WM_SIZE, OnSize)
-		MESSAGE_HANDLER(WM_TIMER, OnTimer)
+		MESSAGE_HANDLER(WM_SIZING, OnSizing)
 		MESSAGE_HANDLER(WM_CLOSE, OnClose)
 	END_MSG_MAP()
 
 	LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 	{
 		m_Render.Init(m_hWnd);
-		SetTimer(100, USER_TIMER_MINIMUM, NULL);
 		return S_OK;
 	}
 
@@ -33,19 +32,16 @@ public:
 	HRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 	{
 		m_Render.Resize(LOWORD(lParam), HIWORD(lParam));
-		m_Render.Display();
 		return S_OK;
 	}
 
-	LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+	HRESULT OnSizing(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 	{
-		m_Render.Display();
 		return S_OK;
 	}
 
 	LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 	{
-		KillTimer(100);
 		m_Render.Free();
 		DestroyWindow();
 		return S_OK;
@@ -54,6 +50,11 @@ public:
 	void OnFinalMessage(HWND hWnd)
 	{
 		PostQuitMessage(0);
+	}
+
+	void Refresh()
+	{
+		m_Render.Display();
 	}
 
 private:
