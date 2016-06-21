@@ -38,6 +38,10 @@ public:
 			goto error_exit;
 		}
 		ReleaseDC(hWnd, hDC);
+
+		glClearColor(0.93f, 0.93f, 0.93f, 0.0f);
+		glColor3f(0.0f, 0.0f, 0.f);
+
 		return true;
 
 	error_exit:

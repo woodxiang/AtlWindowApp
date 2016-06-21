@@ -1,6 +1,8 @@
 #pragma once
 #include "atlbase.h"
 #include "MainWindow.h"
+#include "D2DemoRender.h"
+#include "GLRender.h"
 
 class CMainApp :
 	public CAtlExeModuleT<CMainApp>
@@ -21,7 +23,7 @@ public:
 	}
 
 private:
-	CMainWindow m_MainWindow;
+	CMainWindow<CD2DemoRender> m_MainWindow;
 
 };
 

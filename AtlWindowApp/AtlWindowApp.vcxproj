@@ -150,6 +150,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AtlWindowApp.h" />
+    <ClInclude Include="D2DemoRender.h" />
     <ClInclude Include="GLRender.h" />
     <ClInclude Include="MainApp.h" />
     <ClInclude Include="MainWindow.h" />
