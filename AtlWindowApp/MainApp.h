@@ -11,6 +11,15 @@ public:
 
 	HRESULT PreMessageLoop(_In_ int nShowCmd) noexcept
 	{
+		HRESULT hr = CAtlExeModuleT<CMainApp>::PreMessageLoop(nShowCmd);
+		if (FAILED(hr))
+			return hr;
+
+		hr = ::CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+		if (FAILED(hr))
+		{
+			return hr;
+		}
 		m_MainWindow.Create(NULL);
 		if (m_MainWindow.m_hWnd == NULL)
 		{
@@ -19,6 +28,15 @@ public:
 
 		m_MainWindow.ShowWindow(nShowCmd);
 
+		return S_OK;
+	}
+
+	HRESULT PostMessageLoop() throw()
+	{
+		HRESULT hr = __super::PostMessageLoop();
+		if (FAILED(hr))
+			return hr;
+		::CoUninitialize();
 		return S_OK;
 	}
 
@@ -49,7 +67,7 @@ public:
 	}
 
 private:
-	CMainWindow<CD2DemoRender> m_MainWindow;
+	CMainWindow<CGLRender> m_MainWindow;
 
 };
 

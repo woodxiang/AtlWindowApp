@@ -107,7 +107,7 @@ public:
 	{
 		LARGE_INTEGER currentTimeStamp;
 		QueryPerformanceCounter(&currentTimeStamp);
-		int timeescape = (currentTimeStamp.QuadPart - lastTimeStamp.QuadPart) * 1000 / freqency.QuadPart;
+		int timeescape = (int)((currentTimeStamp.QuadPart - lastTimeStamp.QuadPart) * 1000 / freqency.QuadPart);
 
 		if (timeescape < 0)
 			return;

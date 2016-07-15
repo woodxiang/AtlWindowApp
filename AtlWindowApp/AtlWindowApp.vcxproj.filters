@@ -42,6 +42,9 @@
     <ClInclude Include="D2DemoRender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RibbonApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -63,5 +66,10 @@
     <Image Include="AtlWindowApp.ico">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Ribbon.xml">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>
