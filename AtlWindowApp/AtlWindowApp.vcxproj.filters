@@ -53,6 +53,9 @@
     <ClCompile Include="AtlWindowApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="gl\src\glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="AtlWindowApp.rc">

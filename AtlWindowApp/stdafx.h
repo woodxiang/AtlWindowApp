@@ -26,3 +26,6 @@
 #include <atlwin.h>
 
 #include <UIRibbon.h>
+
+#include "gl\include\glad\glad.h"
+#include "gl\glfw3.h"

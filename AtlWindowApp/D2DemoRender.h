@@ -1,6 +1,5 @@
 #pragma once
 #include "GLRender.h"
-#include <gl\GL.h>
 class CD2DemoRender :
 	public CGLRender
 {

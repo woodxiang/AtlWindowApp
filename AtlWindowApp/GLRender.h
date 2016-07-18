@@ -1,7 +1,5 @@
 #pragma once
 
-#include <gl\GL.h>
-
 class CGLRender
 {
 public:
@@ -52,6 +50,11 @@ public:
 			return false;
 		}
 
+		if (!gladLoadGL()) {
+			printf("Something went wrong!\n");
+			exit(-1);
+		}
+
 		QueryPerformanceCounter(&lastTimeStamp);
 
 		return true;
@@ -59,6 +62,9 @@ public:
 
 	void Resize(int width, int height)
 	{
+		if (m_hWnd == NULL)
+			return;
+
 		const double range = 3;
 
 		if (height == 0)
