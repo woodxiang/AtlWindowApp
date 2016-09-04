@@ -43,7 +43,7 @@ public:
 
 	LRESULT OnPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 	{
-		m_Render.Display();
+		m_Render.Render();
 		return S_OK;
 	}
 

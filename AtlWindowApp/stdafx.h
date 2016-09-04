@@ -27,5 +27,5 @@
 
 #include <UIRibbon.h>
 
-#include "gl\include\glad\glad.h"
-#include "gl\glfw3.h"
+#include "glad\glad.h"
+#include "glad\glad_wgl.h"

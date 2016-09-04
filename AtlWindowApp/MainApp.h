@@ -1,7 +1,7 @@
 #pragma once
 #include "atlbase.h"
 #include "MainWindow.h"
-#include "D2DemoRender.h"
+#include "ChangeBackgroudRender.h"
 #include "GLRender.h"
 
 class CMainApp :
@@ -67,7 +67,7 @@ public:
 	}
 
 private:
-	CMainWindow<CGLRender> m_MainWindow;
+	CMainWindow<CChangeBackgroudRender> m_MainWindow;
 
 };
 

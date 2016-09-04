@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+#include <fstream>
+#include <sstream>
+
 class CGLRender
 {
 public:
@@ -40,6 +44,29 @@ public:
 			return false;
 		}
 
+		if (gladLoadWGL(m_hDC))
+		{
+			UINT gupIndex = 0;
+			BOOL bRet = FALSE;
+			HGPUNV hGpu = 0;
+			do {
+				bRet = wglEnumGpusNV(gupIndex, &hGpu);
+
+				if (bRet)
+				{
+					BOOL bRet2 = FALSE;
+					UINT deviceIndex = 0;
+					do
+					{
+						GPU_DEVICE dev;
+						bRet2 = wglEnumGpuDevicesNV(hGpu, deviceIndex, &dev);
+
+					} while (bRet2);
+				}
+			} while (bRet);
+		}
+
+
 		m_hGlrc = wglCreateContext(m_hDC);
 		if (m_hGlrc == NULL)
 		{
@@ -50,12 +77,15 @@ public:
 			return false;
 		}
 
-		if (!gladLoadGL()) {
-			printf("Something went wrong!\n");
-			exit(-1);
+		if (!gladLoadGL())
+		{
+			return false;
 		}
 
+
 		QueryPerformanceCounter(&lastTimeStamp);
+
+		OnInitialize();
 
 		return true;
 	}
@@ -63,35 +93,29 @@ public:
 	void Resize(int width, int height)
 	{
 		if (m_hWnd == NULL)
+		{
 			return;
-
+		}
 		const double range = 3;
 
 		if (height == 0)
 			height = 1;
 
+		if (width == 0)
+			width = 1;
+		wglMakeCurrent(m_hDC, m_hGlrc);
+
+		OnResize(width, height);
+
 		glViewport(0, 0, width, height);
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-
-		GLdouble aspectRatio = 1.0* width / height;
-
-		if (aspectRatio <= 1)
-		{
-			glOrtho(-range, range, -range / aspectRatio, range / aspectRatio, range, -range);
-		}
-		else
-		{
-			glOrtho(-range * aspectRatio, range * aspectRatio, -range, range, range, -range);
-		}
-
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		//Display();
 	}
 
 	void Free()
 	{
+		wglMakeCurrent(m_hDC, m_hGlrc);
+
+		OnFree();
+
 		wglMakeCurrent(NULL, NULL);
 
 		if (m_hWnd != NULL && m_hDC != NULL)
@@ -109,38 +133,113 @@ public:
 		m_hWnd = NULL;
 	}
 
-	void virtual Display()
+	void virtual Render()
 	{
 		LARGE_INTEGER currentTimeStamp;
 		QueryPerformanceCounter(&currentTimeStamp);
-		int timeescape = (int)((currentTimeStamp.QuadPart - lastTimeStamp.QuadPart) * 1000 / freqency.QuadPart);
+		float timeescape = (float)((currentTimeStamp.QuadPart - lastTimeStamp.QuadPart)) / freqency.QuadPart;
 
 		if (timeescape < 0)
 			return;
 
-		float colorShift = (float)(timeescape % 10000) / 10000;
+		wglMakeCurrent(m_hDC, m_hGlrc);
 
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		//glEnable(GL_LINE_SMOOTH);
-		//glEnable(GL_POINT_SMOOTH);
-
-		glBegin(GL_TRIANGLES);
-		glColor3f(1.0f - colorShift, 1.0f - colorShift, 1.0f - colorShift);
-		glVertex2i(0, 1);
-		glColor3f(0.0f, 1.0f, 0.0f);
-		glVertex2i(-1, -1);
-		glColor3f(0.0f, 0.0f, 1.0f);
-		glVertex2i(1, -1);
-		glEnd();
-
-		glPointSize(100);
-
-		glBegin(GL_POINTS);
-		glVertex2d(2.0, 2.0);
-		glEnd();
+		OnRender(timeescape);
 
 		SwapBuffers(m_hDC);
+	}
+
+protected:
+	void virtual OnRender(float timeescape) = 0;
+	void virtual OnInitialize() = 0;
+	void virtual OnResize(int width, int height) {	}
+	void virtual OnFree() {	}
+
+	static GLuint BuildProgream(std::string& vert, std::string& frag)
+	{
+		GLuint vertexShader = LoadVertexShader(vert);
+		GLuint fragmentShader = LoadFragmentShader(vert);
+		GLuint programe = glCreateProgram();
+		glAttachShader(programe, vertexShader);
+		glAttachShader(programe, fragmentShader);
+		glLinkProgram(programe);
+
+		glDeleteShader(vertexShader);
+		glDeleteShader(fragmentShader);
+
+		return programe;
+	}
+
+	static GLuint LoadVertexShader(std::string& shaderPath)
+	{
+		GLuint shader = glCreateShader(GL_VERTEX_SHADER);
+
+		std::ifstream ifs(shaderPath);
+		if (ifs.bad())
+		{
+			throw std::exception("Invalid vertex shader file.");
+		}
+
+		std::stringstream ss;
+
+		ss << ifs.rdbuf();
+
+		std::string content = ss.str();
+		char* pConent = const_cast<char*>(content.c_str());
+		glShaderSource(shader, 1, &pConent, NULL);
+		glCompileShader(shader);
+
+		GLint status;
+		glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+		if (status != GL_TRUE)
+		{
+			std::string msg = getCompileShaderErrorMessage(shader);
+			throw std::exception(msg.c_str());
+		}
+
+		return shader;
+	}
+
+	static std::string getCompileShaderErrorMessage(GLuint shader)
+	{
+		GLsizei bufSize;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &bufSize);
+
+		std::string str;
+		str.resize(bufSize);
+
+		glGetShaderInfoLog(shader, bufSize / sizeof(GLchar), &bufSize, const_cast<char*>(str.c_str()));
+
+		return str;
+	}
+
+	static GLuint LoadFragmentShader(std::string& shaderPath)
+	{
+		GLuint shader = glCreateShader(GL_FRAGMENT_SHADER);
+
+		std::ifstream ifs(shaderPath);
+		if (ifs.bad())
+		{
+			throw std::exception("Invalid fragement shader file.");
+		}
+
+		std::stringstream ss;
+
+		ss << ifs.rdbuf();
+
+		std::string content = ss.str();
+		char* pConent = const_cast<char*>(content.c_str());
+		glShaderSource(shader, 1, &pConent, NULL);
+		glCompileShader(shader);
+
+		GLint status;
+		glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+		if (status != GL_TRUE)
+		{
+			std::string msg = getCompileShaderErrorMessage(shader);
+			throw std::exception(msg.c_str());
+		}
+		return shader;
 	}
 
 private:
@@ -150,4 +249,5 @@ private:
 
 	LARGE_INTEGER lastTimeStamp;
 	LARGE_INTEGER freqency;
+
 };
