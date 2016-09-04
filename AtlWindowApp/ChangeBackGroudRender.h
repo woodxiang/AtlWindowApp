@@ -23,7 +23,7 @@ protected:
 		glClearBufferfv(GL_COLOR, 0, color);
 		glPointSize(20);
 		glUseProgram(m_renderProgram);
-		glDrawArrays(GL_POINTS, 0,3);
+		glDrawArrays(GL_TRIANGLES, 0,3);
 	}
 
 	void OnInitialize()

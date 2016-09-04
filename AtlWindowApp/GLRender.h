@@ -158,7 +158,7 @@ protected:
 	static GLuint BuildProgream(std::string& vert, std::string& frag)
 	{
 		GLuint vertexShader = LoadVertexShader(vert);
-		GLuint fragmentShader = LoadFragmentShader(vert);
+		GLuint fragmentShader = LoadFragmentShader(frag);
 		GLuint programe = glCreateProgram();
 		glAttachShader(programe, vertexShader);
 		glAttachShader(programe, fragmentShader);
