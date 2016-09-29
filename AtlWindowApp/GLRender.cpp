@@ -29,13 +29,13 @@ void APIENTRY CGLRender::OpenGLDebugProc(GLenum source, GLenum type, GLuint id, 
 bool CGLRender::Init(HWND hWnd)
 {
 	if (hWnd == NULL)
-		return false;
+		throw std::invalid_argument("hWnd is NULL");
 
 	m_hWnd = hWnd;
 	m_hDC = ::GetDC(hWnd);
 	if (m_hDC == NULL)
 	{
-		return false;
+		
 	}
 
 	if (!gladLoadGL())
@@ -237,38 +237,40 @@ void CGLRender::OnDebugMessage(GLenum source, GLenum type, GLuint id, GLenum sev
 }
 #endif
 
-GLuint CGLRender::BuildProgram(HMODULE hModule, UINT vertId, UINT tscId, UINT tesId, UINT geoId, UINT fragId)
+GLuint CGLRender::BuildProgram(HMODULE hModule, UINT vertId, UINT tcsId, UINT tesId, UINT geoId, UINT fragId)
 {
 	std::list<GLuint> shaders;
 
-	if (vertId != 0)
-	{
-		GLuint shader = LoadShaderFromResource(GL_VERTEX_SHADER, hModule, vertId);
-		shaders.push_back(shader);
-	}
+	struct {
+		GLuint type;
+		UINT id;
+	} inputs[] = {
+		{ GL_VERTEX_SHADER, vertId },
+		{ GL_TESS_CONTROL_SHADER, tcsId },
+		{ GL_TESS_EVALUATION_SHADER, tesId },
+		{ GL_GEOMETRY_SHADER, geoId },
+		{ GL_FRAGMENT_SHADER, fragId }
+	};
 
-	if (tscId != 0)
+	try
 	{
-		GLuint shader = LoadShaderFromResource(GL_TESS_CONTROL_SHADER, hModule, tscId);
-		shaders.push_back(shader);
+		for each (auto& var in inputs)
+		{
+			if (var.id != 0)
+			{
+				GLuint shader = LoadShaderFromResource(var.type, hModule, var.id);
+				shaders.push_back(shader);
+			}
+		}
 	}
-
-	if (tesId != 0)
+	catch (COpenglShaderCompileException)
 	{
-		GLuint shader = LoadShaderFromResource(GL_TESS_EVALUATION_SHADER, hModule, tesId);
-		shaders.push_back(shader);
-	}
+		for each (auto shader in shaders)
+		{
+			glDeleteShader(shader);
+		}
 
-	if (geoId != 0)
-	{
-		GLuint shader = LoadShaderFromResource(GL_GEOMETRY_SHADER, hModule, geoId);
-		shaders.push_back(shader);
-	}
-
-	if (fragId != 0)
-	{
-		GLuint shader = LoadShaderFromResource(GL_FRAGMENT_SHADER, hModule, fragId);
-		shaders.push_back(shader);
+		throw;
 	}
 
 	return BuildProgram(shaders);
@@ -278,34 +280,35 @@ GLuint CGLRender::BuildProgram(std::string& vert, std::string& tcs, std::string&
 {
 	std::list<GLuint> shaders;
 
-	if (!vert.empty())
-	{
-		GLuint shader = LoadShaderFromFile(GL_VERTEX_SHADER, vert);
-		shaders.push_back(shader);
-	}
+	struct {
+		GLuint type;
+		std::string path;
+	} inputs[] = {
+		{GL_VERTEX_SHADER, vert},
+		{ GL_TESS_CONTROL_SHADER, tcs },
+		{ GL_TESS_EVALUATION_SHADER, tes },
+		{ GL_GEOMETRY_SHADER, geo },
+		{GL_FRAGMENT_SHADER, frag}
+	};
 
-	if (!tcs.empty())
+	try
 	{
-		GLuint shader = LoadShaderFromFile(GL_TESS_CONTROL_SHADER, tcs);
-		shaders.push_back(shader);
+		for each (auto& var in inputs)
+		{
+			if (!var.path.empty())
+			{
+				GLuint shader = LoadShaderFromFile(var.type, var.path);
+				shaders.push_back(shader);
+			}
+		}
 	}
-
-	if (!tes.empty())
+	catch (COpenglShaderCompileException)
 	{
-		GLuint shader = LoadShaderFromFile(GL_TESS_EVALUATION_SHADER, tes);
-		shaders.push_back(shader);
-	}
-
-	if (!geo.empty())
-	{
-		GLuint shader = LoadShaderFromFile(GL_GEOMETRY_SHADER, geo);
-		shaders.push_back(shader);
-	}
-
-	if (!frag.empty())
-	{
-		GLuint shader = LoadShaderFromFile(GL_FRAGMENT_SHADER, frag);
-		shaders.push_back(shader);
+		for each (auto shader in shaders)
+		{
+			glDeleteShader(shader);
+		}
+		throw;
 	}
 
 	return BuildProgram(shaders);
@@ -325,6 +328,15 @@ GLuint CGLRender::BuildProgram(std::list<GLuint>& shaders)
 	for each (auto shader in shaders)
 	{
 		glDeleteShader(shader);
+	}
+
+	GLint status;
+	glGetProgramiv(program, GL_LINK_STATUS, &status);
+	if (status == GL_FALSE)
+	{
+		auto& ex = COpenglProgramLinkException(program);
+		glDeleteProgram(program);
+		throw ex;
 	}
 
 	return program;
@@ -352,7 +364,7 @@ GLuint CGLRender::LoadShaderFromFile(GLuint shaderType, std::string& shaderPath)
 	std::ifstream ifs(shaderPath);
 	if (ifs.bad())
 	{
-		throw std::exception("Invalid vertex shader file.");
+		return 0;
 	}
 
 	std::stringstream ss;
@@ -375,22 +387,36 @@ GLuint CGLRender::LoadShaderFromString(GLuint shaderType, std::string& str)
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 	if (status != GL_TRUE)
 	{
-		throw std::exception(getCompileShaderErrorMessage(shader).c_str());
+		auto& exp = COpenglShaderCompileException(shader);
+		glDeleteShader(shader);
+		throw exp;
 	}
 
 	return shader;
 }
 
-std::string CGLRender::getCompileShaderErrorMessage(GLuint shader)
+COpenglShaderCompileException::COpenglShaderCompileException(GLuint shader)
+	:m_szMessage(nullptr), exception()
 {
 	GLsizei bufSize;
 	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &bufSize);
+	if (bufSize != 0)
+	{
+		m_szMessage = new char[bufSize];
+		glGetShaderInfoLog(shader, bufSize / sizeof(GLchar), &bufSize, m_szMessage);
+		assert(false);
+	}
+}
 
-	std::string str;
-	str.resize(bufSize);
-
-	glGetShaderInfoLog(shader, bufSize / sizeof(GLchar), &bufSize, const_cast<char*>(str.c_str()));
-
-	_ASSERT(false);
-	return str;
+COpenglProgramLinkException::COpenglProgramLinkException(GLuint program)
+	:m_szMessage(nullptr), exception()
+{
+	GLsizei bufSize;
+	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &bufSize);
+	if (bufSize != 0)
+	{
+		m_szMessage = new char[bufSize];
+		glGetProgramInfoLog(program, bufSize / sizeof(GLchar), &bufSize, m_szMessage);
+		assert(false);
+	}
 }

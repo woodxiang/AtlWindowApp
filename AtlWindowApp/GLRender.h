@@ -47,7 +47,6 @@ protected:
 	static GLuint LoadShaderFromResource(GLuint shaderType, HMODULE hModule, UINT resourceId);
 	static GLuint LoadShaderFromFile(GLuint shaderType, std::string& shaderPath);
 	static GLuint LoadShaderFromString(GLuint shaderType, std::string& pStr);
-	static std::string getCompileShaderErrorMessage(GLuint shader);
 
 	HDC GetDC() { return m_hDC; }
 
@@ -61,4 +60,61 @@ private:
 
 	LARGE_INTEGER lastTimeStamp;
 	LARGE_INTEGER freqency;
+};
+
+class COpenglShaderCompileException
+	:public std::exception
+{
+public:
+	COpenglShaderCompileException(GLuint shader);
+
+	COpenglShaderCompileException(const char* const &message) : m_szMessage(nullptr), std::exception(message) {}
+
+	~COpenglShaderCompileException()
+	{
+		if (m_szMessage != nullptr)
+		{
+			delete[] m_szMessage;
+			m_szMessage = nullptr;
+		}
+	}
+
+	const char* what() const
+	{
+		if (m_szMessage == nullptr)
+		{
+			return m_szMessage;
+		}
+		else
+		{
+			return __super::what();
+		}
+	}
+
+private:
+	char* m_szMessage;
+};
+
+class COpenglProgramLinkException
+	:public std::exception
+{
+public:
+	COpenglProgramLinkException(GLuint program);
+
+	~COpenglProgramLinkException()
+	{
+		if (m_szMessage != nullptr)
+		{
+			delete[] m_szMessage;
+			m_szMessage = nullptr;
+		}
+	}
+
+	const char* what() const
+	{
+		return m_szMessage;
+	}
+
+private:
+	char* m_szMessage;
 };

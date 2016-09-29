@@ -1,14 +1,20 @@
 #version 450 core
 
-layout (triangles) in;
-layout (points, max_vertices = 3) out;
+layout (points) in;
+layout (points ) out;
 
 void main(void)
 {
 	int i;
-	for (i = 0; i < gl_in.length(); i++)
-	{
-		gl_Position = gl_in[i].gl_Position;
-		EmitVertex();
-	}
+//	gl_Position = vec4(gl_in[0].gl_Position.x-0.1, gl_in[0].gl_Position.y-1.0, gl_in[0].gl_Position.z, 1.0);
+//	EmitVertex();
+
+//	gl_Position = vec4(gl_in[0].gl_Position.x-0.1, gl_in[0].gl_Position.y+1.0, gl_in[0].gl_Position.z, 1.0);
+//	EmitVertex();
+
+//	gl_Position = vec4(gl_in[0].gl_Position.x+0.1, gl_in[0].gl_Position.y-1.0, gl_in[0].gl_Position.z, 1.0);
+//	EmitVertex();
+
+	gl_Position = gl_in[0].gl_Position;
+	EmitVertex();
 }
