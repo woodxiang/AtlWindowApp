@@ -86,7 +86,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_ATL_NO_COM_SUPPORT;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ATL_NO_COM_SUPPORT;ENABLE_OPENGL_DEBUG_CONTEXT;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>gl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -104,7 +104,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_ATL_NO_COM_SUPPORT;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ATL_NO_COM_SUPPORT;ENABLE_OPENGL_DEBUG_CONTEXT;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>gl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -166,18 +166,18 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AtlWindowApp.h" />
-    <ClInclude Include="ChangeBackGroudRender.h" />
     <ClInclude Include="D2DemoRender.h" />
     <ClInclude Include="GLRender.h" />
     <ClInclude Include="MainApp.h" />
     <ClInclude Include="MainWindow.h" />
+    <ClInclude Include="OpenGLWnd.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="RibbonApp.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlWindowApp.cpp" />
+    <ClCompile Include="GLRender.cpp" />
     <ClCompile Include="gl\src\glad.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -203,26 +203,19 @@
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="Ribbon.xml">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">UICC ribbon.xml ribbon.bin /header:ribbon.h /res:ribbon.rc</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">UICC ribbon.xml ribbon.bin /header:ribbon.h /res:ribbon.rc</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UICC ribbon.xml ribbon.bin /header:ribbon.h /res:ribbon.rc</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UICC ribbon.xml ribbon.bin /header:ribbon.h /res:ribbon.rc</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ribbon.bin;ribbon.h;ribbon.rc</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ribbon.bin;ribbon.h;ribbon.rc</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ribbon.bin;ribbon.h;ribbon.rc</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ribbon.bin;ribbon.h;ribbon.rc</Outputs>
-      <SubType>Designer</SubType>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
+    <None Include="glsl\directout.frag" />
+    <None Include="glsl\directout.vert" />
+    <None Include="glsl\directoutuniformcolor.frag" />
+    <None Include="glsl\directoutuniformcolor.vert" />
+    <None Include="glsl\movetriangle.vert" />
     <None Include="glsl\point.frag" />
     <None Include="glsl\point.vert" />
+    <None Include="glsl\textout.frag" />
+    <None Include="glsl\textout.vert" />
     <None Include="glsl\triangle.frag" />
+    <None Include="glsl\triangle.geo" />
+    <None Include="glsl\triangle.tes" />
+    <None Include="glsl\triangle.tsc" />
     <None Include="glsl\triangle.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -42,13 +42,10 @@
     <ClInclude Include="GLRender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="OpenGLWnd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="D2DemoRender.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RibbonApp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ChangeBackGroudRender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -63,6 +60,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="gl\src\glad_wgl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GLRender.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -80,11 +80,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="Ribbon.xml">
-      <Filter>Resource Files</Filter>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="glsl\point.frag">
       <Filter>glsl</Filter>
     </None>
@@ -95,6 +90,36 @@
       <Filter>glsl</Filter>
     </None>
     <None Include="glsl\triangle.vert">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\directout.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\directout.vert">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\directoutuniformcolor.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\directoutuniformcolor.vert">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\movetriangle.vert">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\textout.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\textout.vert">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\triangle.geo">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\triangle.tes">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\triangle.tsc">
       <Filter>glsl</Filter>
     </None>
   </ItemGroup>

@@ -1,8 +1,6 @@
 #pragma once
 #include "atlbase.h"
 #include "MainWindow.h"
-#include "ChangeBackgroudRender.h"
-#include "GLRender.h"
 
 class CMainApp :
 	public CAtlExeModuleT<CMainApp>
@@ -63,11 +61,10 @@ public:
 
 	void OnIdel()
 	{
-		m_MainWindow.Refresh();
+		m_MainWindow.Render();
 	}
 
 private:
-	CMainWindow<CChangeBackgroudRender> m_MainWindow;
-
+	CMainWindow m_MainWindow;
 };
 

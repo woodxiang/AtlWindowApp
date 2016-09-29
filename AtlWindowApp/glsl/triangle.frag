@@ -4,11 +4,9 @@ out vec4 color;
 
 void main(void)
 {
-	const vec4 colors[3] = vec4[3]{
-		vec4(0.0, 0.8, 1.0, 1.0),
-		vec4(0.0, 0.8, 1.0, 1.0),
-		vec4(0.0, 0.8, 1.0, 1.0)
-	};
-
-	color = colors[gl_VertexID];
+	color = vec4(
+		sin(gl_FragCoord.x * 0.25) * 0.5 + 0.5,
+		cos(gl_FragCoord.y * 0.25) * 0.5 + 0.5,
+		sin(gl_FragCoord.x * 0.15) * cos(gl_FragCoord.y * 0.15),
+		1.0);
 }
