@@ -88,7 +88,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_ATL_NO_COM_SUPPORT;ENABLE_OPENGL_DEBUG_CONTEXT;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>gl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>gl\include;D:\tfs\ProtoTools\third-party;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -106,7 +106,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_ATL_NO_COM_SUPPORT;ENABLE_OPENGL_DEBUG_CONTEXT;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>gl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>gl\include;D:\tfs\ProtoTools\third-party;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -126,7 +126,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_ATL_NO_COM_SUPPORT;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>gl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>gl\include;D:\tfs\ProtoTools\third-party;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -148,7 +148,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_ATL_NO_COM_SUPPORT;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>gl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>gl\include;D:\tfs\ProtoTools\third-party;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -166,12 +166,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AtlWindowApp.h" />
+    <ClInclude Include="BoxLibIn2DRender.h" />
     <ClInclude Include="D2DemoRender.h" />
+    <ClInclude Include="DecorateLayer.h" />
     <ClInclude Include="Exceptions.h" />
     <ClInclude Include="GLRender.h" />
     <ClInclude Include="MainApp.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="OpenGLWnd.h" />
+    <ClInclude Include="TextInfoDecorator.h" />
     <ClInclude Include="tstring.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
@@ -179,6 +182,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtlWindowApp.cpp" />
+    <ClCompile Include="BoxLibIn2DRender.cpp" />
+    <ClCompile Include="DecorateLayer.cpp" />
     <ClCompile Include="Exceptions.cpp" />
     <ClCompile Include="GLRender.cpp" />
     <ClCompile Include="gl\src\glad.c">
@@ -191,6 +196,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TextInfoDecorator.cpp" />
     <ClCompile Include="tstring.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

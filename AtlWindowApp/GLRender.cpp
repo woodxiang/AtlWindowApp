@@ -11,8 +11,9 @@
 #include "StdAfx.h"
 
 #include "GLRender.h"
-
+#include "Exceptions.h"
 #include <sstream>
+#include <cassert>
 
 CGLRender::CGLRender()
 {
@@ -26,16 +27,20 @@ void APIENTRY CGLRender::OpenGLDebugProc(GLenum source, GLenum type, GLuint id, 
 
 #endif
 
-bool CGLRender::Init(HWND hWnd)
+std::string GetlShaderCompileErrorMessage(GLuint shader);
+
+std::string GetProgramLinkErrorMessage(GLuint program);
+
+bool CGLRender::Init(HWND hWnd) noexcept
 {
 	if (hWnd == NULL)
-		throw std::invalid_argument("hWnd is NULL");
+		return false;
 
 	m_hWnd = hWnd;
 	m_hDC = ::GetDC(hWnd);
 	if (m_hDC == NULL)
 	{
-		
+		return false;
 	}
 
 	if (!gladLoadGL())
@@ -62,7 +67,6 @@ bool CGLRender::Init(HWND hWnd)
 		}
 
 		m_hGlrc = wglCreateContext(m_hDC);
-
 		if (m_hGlrc == NULL)
 		{
 			return false;
@@ -82,7 +86,10 @@ bool CGLRender::Init(HWND hWnd)
 			return false;
 		}
 
-		wglDeleteContext(m_hGlrc);
+		if (!wglDeleteContext(m_hGlrc))
+		{
+			return false;
+		}
 	}
 
 	//if (gladLoadWGL(m_hDC))
@@ -135,9 +142,15 @@ bool CGLRender::Init(HWND hWnd)
 	PIXELFORMATDESCRIPTOR pfd;
 	ZeroMemory(&pfd, sizeof(pfd));
 
-	DescribePixelFormat(m_hDC, iPixelFormats, sizeof(pfd), &pfd);
+	if (!DescribePixelFormat(m_hDC, iPixelFormats, sizeof(pfd), &pfd))
+	{
+		return false;
+	}
 
-	SetPixelFormat(m_hDC, iPixelFormats, &pfd);
+	if (!SetPixelFormat(m_hDC, iPixelFormats, &pfd))
+	{
+		return false;
+	}
 
 	int contextAttributes[]{
 		WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
@@ -171,23 +184,24 @@ bool CGLRender::Init(HWND hWnd)
 	return true;
 }
 
-void CGLRender::Resize(int width, int height)
+void CGLRender::Resize(int width, int height) noexcept
 {
-	const double range = 3;
+	if (width <= 0 || height <= 0)
+	{
+		return;
+	}
 
-	if (height == 0)
-		height = 1;
-
-	if (width == 0)
-		width = 1;
-	wglMakeCurrent(m_hDC, m_hGlrc);
+	if (!wglMakeCurrent(m_hDC, m_hGlrc))
+	{
+		return;
+	}
 
 	OnResize(width, height);
 
 	glViewport(0, 0, width, height);
 }
 
-void CGLRender::Free()
+void CGLRender::Free() noexcept
 {
 	wglMakeCurrent(m_hDC, m_hGlrc);
 
@@ -210,7 +224,7 @@ void CGLRender::Free()
 	m_hWnd = NULL;
 }
 
-void CGLRender::Render()
+void CGLRender::Render() noexcept
 {
 	LARGE_INTEGER currentTimeStamp;
 	QueryPerformanceCounter(&currentTimeStamp);
@@ -252,28 +266,28 @@ GLuint CGLRender::BuildProgram(HMODULE hModule, UINT vertId, UINT tcsId, UINT te
 		{ GL_FRAGMENT_SHADER, fragId }
 	};
 
-	try
+	for each (auto& var in inputs)
 	{
-		for each (auto& var in inputs)
+		if (var.id != 0)
 		{
-			if (var.id != 0)
+			GLuint shader = LoadShaderFromResource(var.type, hModule, var.id);
+			if (shader == 0)
 			{
-				GLuint shader = LoadShaderFromResource(var.type, hModule, var.id);
-				shaders.push_back(shader);
+				goto err_exit;
 			}
+			shaders.push_back(shader);
 		}
-	}
-	catch (COpenglShaderCompileException)
-	{
-		for each (auto shader in shaders)
-		{
-			glDeleteShader(shader);
-		}
-
-		throw;
 	}
 
 	return BuildProgram(shaders);
+
+err_exit:
+	for each (auto shader in shaders)
+	{
+		glDeleteShader(shader);
+	}
+
+	return 0;
 }
 
 GLuint CGLRender::BuildProgram(std::string& vert, std::string& tcs, std::string& tes, std::string& geo, std::string& frag)
@@ -291,27 +305,27 @@ GLuint CGLRender::BuildProgram(std::string& vert, std::string& tcs, std::string&
 		{GL_FRAGMENT_SHADER, frag}
 	};
 
-	try
+	for each (auto& var in inputs)
 	{
-		for each (auto& var in inputs)
+		if (!var.path.empty())
 		{
-			if (!var.path.empty())
+			GLuint shader = LoadShaderFromFile(var.type, var.path);
+			if (shader == 0)
 			{
-				GLuint shader = LoadShaderFromFile(var.type, var.path);
-				shaders.push_back(shader);
+				goto err_exit;
 			}
+			shaders.push_back(shader);
 		}
-	}
-	catch (COpenglShaderCompileException)
-	{
-		for each (auto shader in shaders)
-		{
-			glDeleteShader(shader);
-		}
-		throw;
 	}
 
 	return BuildProgram(shaders);
+
+err_exit:
+	for each (auto var in shaders)
+	{
+		glDeleteShader(var);
+	}
+	return 0;
 }
 
 GLuint CGLRender::BuildProgram(std::list<GLuint>& shaders)
@@ -334,9 +348,8 @@ GLuint CGLRender::BuildProgram(std::list<GLuint>& shaders)
 	glGetProgramiv(program, GL_LINK_STATUS, &status);
 	if (status == GL_FALSE)
 	{
-		auto& ex = COpenglProgramLinkException(program);
+		assert(GetProgramLinkErrorMessage(program).length());
 		glDeleteProgram(program);
-		throw ex;
 	}
 
 	return program;
@@ -387,36 +400,39 @@ GLuint CGLRender::LoadShaderFromString(GLuint shaderType, std::string& str)
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 	if (status != GL_TRUE)
 	{
-		auto& exp = COpenglShaderCompileException(shader);
+		assert(GetlShaderCompileErrorMessage(shader).length());
 		glDeleteShader(shader);
-		throw exp;
 	}
 
 	return shader;
 }
 
-COpenglShaderCompileException::COpenglShaderCompileException(GLuint shader)
-	:m_szMessage(nullptr), exception()
+std::string GetlShaderCompileErrorMessage(GLuint shader)
 {
 	GLsizei bufSize;
 	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &bufSize);
+	std::string msg;
 	if (bufSize != 0)
 	{
-		m_szMessage = new char[bufSize];
-		glGetShaderInfoLog(shader, bufSize / sizeof(GLchar), &bufSize, m_szMessage);
+		std::string msg;
+		msg.reserve(bufSize);
+		glGetShaderInfoLog(shader, bufSize / sizeof(GLchar), &bufSize, const_cast<char*>(msg.data()));
 		assert(false);
 	}
+	return msg;
 }
 
-COpenglProgramLinkException::COpenglProgramLinkException(GLuint program)
-	:m_szMessage(nullptr), exception()
+std::string GetProgramLinkErrorMessage(GLuint program)
 {
 	GLsizei bufSize;
 	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &bufSize);
+	std::string msg;
 	if (bufSize != 0)
 	{
-		m_szMessage = new char[bufSize];
-		glGetProgramInfoLog(program, bufSize / sizeof(GLchar), &bufSize, m_szMessage);
+		msg.reserve(bufSize);
+		glGetProgramInfoLog(program, bufSize / sizeof(GLchar), &bufSize, const_cast<char*>(msg.data()));
 		assert(false);
 	}
+
+	return msg;
 }

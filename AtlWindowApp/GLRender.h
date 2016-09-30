@@ -19,23 +19,23 @@ public:
 
 	CGLRender();
 
-	bool Init(HWND hWnd);
+	bool Init(HWND hWnd) noexcept;
 
-	void Resize(int width, int height);
+	void Resize(int width, int height) noexcept;
 
-	void Free();
+	void Free() noexcept;
 
-	void virtual Render();
+	void virtual Render() noexcept;
 
-	void virtual Zoom(short factor) {}
+	void virtual Zoom(short factor) noexcept {}
 
-	void virtual Move(int x, int y) {}
+	void virtual Move(int x, int y) noexcept {}
 
 protected:
-	void virtual OnRender(float timeescape) = 0;
-	void virtual OnInitialize() = 0;
-	void virtual OnResize(int width, int height) {	}
-	void virtual OnFree() {	}
+	void virtual OnRender(float timeescape) noexcept = 0;
+	void virtual OnInitialize() noexcept = 0;
+	void virtual OnResize(int width, int height) noexcept {	}
+	void virtual OnFree() noexcept {	}
 
 #ifdef ENABLE_OPENGL_DEBUG_CONTEXT
 	void virtual OnDebugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message);
@@ -60,61 +60,6 @@ private:
 
 	LARGE_INTEGER lastTimeStamp;
 	LARGE_INTEGER freqency;
-};
 
-class COpenglShaderCompileException
-	:public std::exception
-{
-public:
-	COpenglShaderCompileException(GLuint shader);
-
-	COpenglShaderCompileException(const char* const &message) : m_szMessage(nullptr), std::exception(message) {}
-
-	~COpenglShaderCompileException()
-	{
-		if (m_szMessage != nullptr)
-		{
-			delete[] m_szMessage;
-			m_szMessage = nullptr;
-		}
-	}
-
-	const char* what() const
-	{
-		if (m_szMessage == nullptr)
-		{
-			return m_szMessage;
-		}
-		else
-		{
-			return __super::what();
-		}
-	}
-
-private:
-	char* m_szMessage;
-};
-
-class COpenglProgramLinkException
-	:public std::exception
-{
-public:
-	COpenglProgramLinkException(GLuint program);
-
-	~COpenglProgramLinkException()
-	{
-		if (m_szMessage != nullptr)
-		{
-			delete[] m_szMessage;
-			m_szMessage = nullptr;
-		}
-	}
-
-	const char* what() const
-	{
-		return m_szMessage;
-	}
-
-private:
-	char* m_szMessage;
+	friend class CDecorateLayer;
 };

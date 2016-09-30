@@ -15,7 +15,7 @@ public:
 	}
 
 protected:
-	void  OnRender(float timeescape)
+	void  OnRender(float timeescape) noexcept
 	{
 		static float t = 0;
 		t += timeescape;
@@ -29,7 +29,7 @@ protected:
 		glDrawArrays(GL_POINTS, 0,3);
 	}
 
-	void OnInitialize()
+	void OnInitialize() noexcept
 	{
 		m_renderProgram = BuildProgram(
 			std::string("glsl\\triangle.vert"), 
