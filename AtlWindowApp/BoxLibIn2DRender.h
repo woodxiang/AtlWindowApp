@@ -34,6 +34,8 @@ public:
 
 	void Move(int x, int y) noexcept;
 
+	void Rotate(int x, int y) noexcept;
+
 protected:
 	void  OnRender(float timeescape) noexcept;
 
@@ -64,12 +66,15 @@ private:
 	GLint m_projectionLocationInBoxProgram;
 	GLint m_projectionLocationInMeshProgram;
 
-	glm::mat4 m_projection;
-	glm::mat4 m_Model;
+	glm::mat4 m_matrixProjection;
+	glm::mat4 m_matrixCamera;
+	glm::mat4 m_matrixModel;
 
 	float m_screenScale;
 
 	CTextInfoDecorator m_decorateLayer;
 
 	float m_lastFrameTime;
+
+	bool m_bIsPerspective;
 };

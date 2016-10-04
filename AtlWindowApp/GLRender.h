@@ -31,6 +31,8 @@ public:
 
 	void virtual Move(int x, int y) noexcept {}
 
+	void virtual Rotate(int x, int y) noexcept {}
+
 protected:
 	void virtual OnRender(float timeescape) noexcept = 0;
 	void virtual OnInitialize() noexcept = 0;

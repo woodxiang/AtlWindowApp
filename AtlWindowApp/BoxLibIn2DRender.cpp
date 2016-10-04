@@ -29,8 +29,8 @@ void CBoxLibIn2DRender::UpdateData(std::vector<int>& boxCounts, std::vector<floa
 		glBindVertexArray(m_boxVAO);
 		glCreateBuffers(1, &buf[0]);
 		glNamedBufferStorage(buf[0], boxData.size() * sizeof(GLfloat), boxData.data(), 0);
-		glVertexArrayVertexBuffer(m_boxVAO, 0, buf[0], 0, sizeof(GLfloat) * 2);
-		glVertexArrayAttribFormat(m_boxVAO, 0, 2, GL_FLOAT, GL_FALSE, 0);
+		glVertexArrayVertexBuffer(m_boxVAO, 0, buf[0], 0, sizeof(GLfloat) * 3);
+		glVertexArrayAttribFormat(m_boxVAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
 		glVertexArrayAttribBinding(m_boxVAO, 0, 0);
 		glBindVertexArray(m_boxVAO);
 		glEnableVertexAttribArray(0);
@@ -42,8 +42,8 @@ void CBoxLibIn2DRender::UpdateData(std::vector<int>& boxCounts, std::vector<floa
 		glBindVertexArray(m_meshVAO);
 		glCreateBuffers(2, &buf[0]);
 		glNamedBufferStorage(buf[0], meshCoords.size() * sizeof(GLfloat), meshCoords.data(), 0);
-		glVertexArrayVertexBuffer(m_meshVAO, 0, buf[0], 0, sizeof(GLfloat) * 2);
-		glVertexArrayAttribFormat(m_meshVAO, 0, 2, GL_FLOAT, GL_FALSE, 0);
+		glVertexArrayVertexBuffer(m_meshVAO, 0, buf[0], 0, sizeof(GLfloat) * 3);
+		glVertexArrayAttribFormat(m_meshVAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
 		glVertexArrayAttribBinding(m_meshVAO, 0, 0);
 		glEnableVertexArrayAttrib(m_meshVAO, 0);
 
@@ -63,12 +63,20 @@ void CBoxLibIn2DRender::UpdateData(std::vector<int>& boxCounts, std::vector<floa
 void CBoxLibIn2DRender::Zoom(short factor) noexcept
 {
 	float rate = 1.0f + ((float)factor / 120 / 10);
-	m_Model = glm::scale(glm::mat4(1.0f), glm::vec3(rate, rate, rate)) * m_Model;
+	m_matrixCamera = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, rate)) * m_matrixCamera;
 }
 
 void CBoxLibIn2DRender::Move(int x, int y) noexcept
 {
-	m_Model = glm::translate(glm::mat4(1.0f), glm::vec3((float)x / m_screenScale, (float)-y / m_screenScale, 0.0f)) * m_Model;
+	m_matrixCamera = glm::translate(glm::mat4(1.0f), glm::vec3((float)x / m_screenScale, (float)-y / m_screenScale, 0.0f)) * m_matrixCamera;
+}
+
+void CBoxLibIn2DRender::Rotate(int x, int y) noexcept
+{
+	auto m = glm::rotate(glm::mat4(1.0f), 3.14f*x / m_screenScale, glm::vec3(0, 1, 0));
+	m *= glm::rotate(glm::mat4(1.0f), 3.14f *y / m_screenScale, glm::vec3(1, 0, 0));
+
+	m_matrixModel = m * m_matrixModel;
 }
 
 void CBoxLibIn2DRender::OnRender(float timeescape) noexcept
@@ -89,22 +97,29 @@ void CBoxLibIn2DRender::OnRender(float timeescape) noexcept
 		{ 1.0f, 0.0f, 1.0f },
 	};
 	glClearBufferfv(GL_COLOR, 0, color);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
 
 	if (m_szMeshCount > 0)
 	{
 		GLint p = 0;
 
-		glm::mat4 m = m_projection * m_Model;
+		glm::mat4 m = m_matrixProjection * m_matrixCamera* m_matrixModel;
 
+
+		glEnable(GL_POLYGON_OFFSET_FILL);
 		glUseProgram(m_meshProg);
 		glBindVertexArray(m_meshVAO);
 		glUniformMatrix4fv(m_projectionLocationInBoxProgram, 1, GL_FALSE, glm::value_ptr(m));
 		for (int i = 0; i < m_szMeshCount; i++)
 		{
+			glPolygonOffset(0, -i*10);
 			glDrawArrays(GL_TRIANGLE_STRIP, p, 4);
 			p += 4;
 		}
 
+		glEnable(GL_POLYGON_OFFSET_LINE);
 		glUseProgram(m_boxProg);
 		glBindVertexArray(m_boxVAO);
 
@@ -119,6 +134,7 @@ void CBoxLibIn2DRender::OnRender(float timeescape) noexcept
 			}
 			for (int i = 0; i < count; i++)
 			{
+				glPolygonOffset(0, -(i+1) * 20);
 				glDrawArrays(GL_LINE_LOOP, p, 4);
 				p += 4;
 			}
@@ -169,8 +185,16 @@ void CBoxLibIn2DRender::OnInitialize() noexcept
 	glCreateVertexArrays(1, &m_boxVAO);
 	glCreateVertexArrays(1, &m_meshVAO);
 
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+
 	m_decorateLayer.Initialize();
 	m_decorateLayer.AppendMessage(std::string("FPS:0"));
+
+	m_bIsPerspective = true;
+
+	m_matrixCamera = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1.0f));
+
 }
 
 void CBoxLibIn2DRender::OnResize(int width, int height) noexcept
@@ -182,12 +206,26 @@ void CBoxLibIn2DRender::OnResize(int width, int height) noexcept
 
 	if (ratio > 1)
 	{
-		m_projection = glm::ortho(-ratio, ratio, -1.0f, 1.0f);
+		if (m_bIsPerspective)
+		{
+			m_matrixProjection = glm::perspective(90.0f, ratio, 0.1f, 100.0f);
+		}
+		else
+		{
+			m_matrixProjection = glm::ortho(-ratio, ratio, -1.0f, 1.0f);
+		}
 		m_screenScale = (float)height;
 	}
 	else
 	{
-		m_projection = glm::ortho(-1.0f, 1.0f, -1.0f / ratio, 1.0f / ratio);
+		if (m_bIsPerspective)
+		{
+			m_matrixProjection = glm::perspective(45.0f, 1.0f / ratio, 0.1f, 100.0f);
+		}
+		else
+		{
+			m_matrixProjection = glm::ortho(-1.0f, 1.0f, -1.0f / ratio, 1.0f / ratio);
+		}
 		m_screenScale = (float)width;
 	}
 }

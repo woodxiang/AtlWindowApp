@@ -151,9 +151,5 @@ void CDecorateLayer::Render()
 
 void CDecorateLayer::OnDecorate(HDC hMem)
 {
-	/*TCHAR txt[] = _T("THis is a Test");
-	RECT r = { 0,0,m_iWidth,m_iHeight };
-	SetTextColor(hMem, RGB(255, 0, 0));
-	SetBkMode(hMem, TRANSPARENT);
-	DrawText(hMem, txt, sizeof(txt) / sizeof(TCHAR) - 1, &r, 0);*/
+
 }
