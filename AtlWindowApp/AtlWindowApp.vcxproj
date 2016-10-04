@@ -226,6 +226,7 @@
     <None Include="glsl\movetriangle.vert" />
     <None Include="glsl\point.frag" />
     <None Include="glsl\point.vert" />
+    <None Include="glsl\point2mesh.geo" />
     <None Include="glsl\textout.frag" />
     <None Include="glsl\textout.vert" />
     <None Include="glsl\triangle.frag" />
@@ -233,6 +234,7 @@
     <None Include="glsl\triangle.tes" />
     <None Include="glsl\triangle.tsc" />
     <None Include="glsl\triangle.vert" />
+    <None Include="glsl\point2box.geo" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

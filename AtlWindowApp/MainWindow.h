@@ -29,64 +29,28 @@ public:
 		boxCounts.push_back(2);
 
 		std::vector<float> boxData;
-		boxData.reserve(16);
-		boxData.push_back(-0.25f);
-		boxData.push_back(0.25f);
+		boxData.reserve(6);
 		boxData.push_back(0.0f);
-		boxData.push_back(-0.25f);
-		boxData.push_back(-0.25f);
 		boxData.push_back(0.0f);
-		boxData.push_back(0.25f);
-		boxData.push_back(-0.25f);
-		boxData.push_back(0.0f);
-		boxData.push_back(0.25f);
-		boxData.push_back(0.25f);
 		boxData.push_back(0.0f);
 
-		boxData.push_back(-0.20f);
-		boxData.push_back(0.20f);
-		boxData.push_back(0.0f);
-		boxData.push_back(-0.20f);
-		boxData.push_back(-0.20f);
-		boxData.push_back(0.0f);
-		boxData.push_back(0.20f);
-		boxData.push_back(-0.20f);
-		boxData.push_back(0.0f);
-		boxData.push_back(0.20f);
-		boxData.push_back(0.20f);
+		boxData.push_back(0.05f);
+		boxData.push_back(0.05f);
 		boxData.push_back(0.0f);
 
 		std::vector<float> meshCoords;
 
-		meshCoords.reserve(16);
-		meshCoords.push_back(-0.25f);
-		meshCoords.push_back(-0.25f);
+		meshCoords.reserve(6);
 		meshCoords.push_back(0.0f);
-		meshCoords.push_back(0.25f);
-		meshCoords.push_back(-0.25f);
 		meshCoords.push_back(0.0f);
-		meshCoords.push_back(-0.25f);
-		meshCoords.push_back(0.25f);
-		meshCoords.push_back(0.0f);
-		meshCoords.push_back(0.25f);
-		meshCoords.push_back(0.25f);
 		meshCoords.push_back(0.0f);
 
-		meshCoords.push_back(-0.20f);
-		meshCoords.push_back(-0.20f);
-		meshCoords.push_back(0.0f);
-		meshCoords.push_back(0.20f);
-		meshCoords.push_back(-0.20f);
-		meshCoords.push_back(0.0f);
-		meshCoords.push_back(-0.20f);
-		meshCoords.push_back(0.20f);
-		meshCoords.push_back(0.0f);
-		meshCoords.push_back(0.20f);
-		meshCoords.push_back(0.20f);
+		meshCoords.push_back(0.05f);
+		meshCoords.push_back(0.05f);
 		meshCoords.push_back(0.0f);
 
 		std::vector<float> meshColors;
-		meshColors.reserve(24);
+		meshColors.reserve(6);
 		meshColors.push_back(1.0f);
 		meshColors.push_back(0.0f);
 		meshColors.push_back(0.0f);
@@ -94,30 +58,6 @@ public:
 		meshColors.push_back(0.0f);
 		meshColors.push_back(1.0f);
 		meshColors.push_back(0.0f);
-
-		meshColors.push_back(0.0f);
-		meshColors.push_back(0.0f);
-		meshColors.push_back(1.0f);
-
-		meshColors.push_back(1.0f);
-		meshColors.push_back(1.0f);
-		meshColors.push_back(0.0f);
-
-		meshColors.push_back(0.0f);
-		meshColors.push_back(1.0f);
-		meshColors.push_back(1.0f);
-
-		meshColors.push_back(0.0f);
-		meshColors.push_back(1.0f);
-		meshColors.push_back(1.0f);
-
-		meshColors.push_back(0.0f);
-		meshColors.push_back(1.0f);
-		meshColors.push_back(1.0f);
-
-		meshColors.push_back(0.0f);
-		meshColors.push_back(1.0f);
-		meshColors.push_back(1.0f);
 
 		render->UpdateData(boxCounts, boxData, meshCoords, meshColors);
 		return S_OK;

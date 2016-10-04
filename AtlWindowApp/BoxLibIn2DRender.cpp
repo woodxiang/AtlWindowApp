@@ -57,7 +57,7 @@ void CBoxLibIn2DRender::UpdateData(std::vector<int>& boxCounts, std::vector<floa
 		m_meshColorsBuf = buf[1];
 	}
 	m_boxCounts.swap(boxCounts);
-	m_szMeshCount = (int)(meshCoords.size() / 8);
+	m_szMeshCount = (int)(meshCoords.size());
 }
 
 void CBoxLibIn2DRender::Zoom(short factor) noexcept
@@ -97,8 +97,7 @@ void CBoxLibIn2DRender::OnRender(float timeescape) noexcept
 		{ 1.0f, 0.0f, 1.0f },
 	};
 	glClearBufferfv(GL_COLOR, 0, color);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 
 	if (m_szMeshCount > 0)
@@ -108,22 +107,21 @@ void CBoxLibIn2DRender::OnRender(float timeescape) noexcept
 		glm::mat4 m = m_matrixProjection * m_matrixCamera* m_matrixModel;
 
 
-		glEnable(GL_POLYGON_OFFSET_FILL);
 		glUseProgram(m_meshProg);
 		glBindVertexArray(m_meshVAO);
-		glUniformMatrix4fv(m_projectionLocationInBoxProgram, 1, GL_FALSE, glm::value_ptr(m));
-		for (int i = 0; i < m_szMeshCount; i++)
-		{
-			glPolygonOffset(0, -i*10);
-			glDrawArrays(GL_TRIANGLE_STRIP, p, 4);
-			p += 4;
-		}
 
-		glEnable(GL_POLYGON_OFFSET_LINE);
+		glUniformMatrix4fv(m_projectionLocationInBoxProgram, 1, GL_FALSE, glm::value_ptr(m));
+		GLint sizeLocation = glGetUniformLocation(m_meshProg, "boxSize");
+		glUniform1f(sizeLocation, 0.1f);
+		glDrawArrays(GL_POINTS, p, m_szMeshCount);
+
 		glUseProgram(m_boxProg);
 		glBindVertexArray(m_boxVAO);
 
 		glUniformMatrix4fv(m_projectionLocationInMeshProgram, 1, GL_FALSE, glm::value_ptr(m));
+		sizeLocation = glGetUniformLocation(m_boxProg, "boxSize");
+		glUniform1f(sizeLocation, 0.1f);
+
 		p = 0;
 		for (int i = 0; i < (int)m_boxCounts.size(); i++)
 		{
@@ -132,12 +130,7 @@ void CBoxLibIn2DRender::OnRender(float timeescape) noexcept
 			{
 				glUniform3f(m_uniformColorLocation, boxColors[i][0], boxColors[i][1], boxColors[i][2]);
 			}
-			for (int i = 0; i < count; i++)
-			{
-				glPolygonOffset(0, -(i+1) * 20);
-				glDrawArrays(GL_LINE_LOOP, p, 4);
-				p += 4;
-			}
+			glDrawArrays(GL_POINTS, p, count);
 		}
 
 		m_decorateLayer.Render();
@@ -147,7 +140,7 @@ void CBoxLibIn2DRender::OnRender(float timeescape) noexcept
 
 void CBoxLibIn2DRender::OnInitialize() noexcept
 {
-	m_boxProg = BuildProgram(std::string("glsl\\directoutuniformcolor.vert"), std::string(), std::string(), std::string(), std::string("glsl\\directoutuniformcolor.frag"));
+	m_boxProg = BuildProgram(std::string("glsl\\directoutuniformcolor.vert"), std::string(), std::string(), std::string("glsl\\point2box.geo"), std::string("glsl\\directoutuniformcolor.frag"));
 	assert(m_boxProg != 0);
 	if (m_boxProg == 0)
 	{
@@ -168,7 +161,7 @@ void CBoxLibIn2DRender::OnInitialize() noexcept
 		return;
 	}
 
-	m_meshProg = BuildProgram(std::string("glsl\\directout.vert"), std::string(), std::string(), std::string(), std::string("glsl\\directout.frag"));
+	m_meshProg = BuildProgram(std::string("glsl\\directout.vert"), std::string(), std::string(), std::string("glsl\\point2mesh.geo"), std::string("glsl\\directout.frag"));
 	assert(m_meshProg != 0);
 	if (m_meshProg == 0)
 	{

@@ -174,7 +174,7 @@ bool CGLRender::Init(HWND hWnd) noexcept
 
 #ifdef ENABLE_OPENGL_DEBUG_CONTEXT
 	glDebugMessageCallback((GLDEBUGPROC)OpenGLDebugProc, this);
-	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+	//glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
 #endif
 
 	QueryPerformanceCounter(&lastTimeStamp);
@@ -245,7 +245,6 @@ void CGLRender::Render() noexcept
 
 void CGLRender::OnDebugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message)
 {
-	assert(false);
 	OutputDebugStringA(message);
 	OutputDebugStringA("\n");
 }

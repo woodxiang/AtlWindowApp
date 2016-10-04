@@ -152,5 +152,11 @@
     <None Include="glsl\triangle.tsc">
       <Filter>glsl</Filter>
     </None>
+    <None Include="glsl\point2box.geo">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\point2mesh.geo">
+      <Filter>glsl</Filter>
+    </None>
   </ItemGroup>
 </Project>
